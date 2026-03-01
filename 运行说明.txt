@@ -1,0 +1,30 @@
+OpenAI 自动注册脚本 - 运行说明
+================================
+
+【安装依赖】
+pip install curl_cffi
+
+【运行命令】
+
+1. 单次运行（推荐测试）：
+   python openai_register.py --once
+   python openai_register.py --proxy http://127.0.0.1:7890 --once
+
+2. 循环运行：
+   python openai_register.py --proxy http://127.0.0.1:7890
+
+【参数说明】
+--proxy      代理地址（必填，需要科学上网）
+--once       只运行一次后退出
+--sleep-min  循环模式最短等待秒数（默认 5）
+--sleep-max  循环模式最长等待秒数（默认 30）
+
+【输出结果】
+成功后生成 token_xxx_时间戳.json 文件，包含：
+- access_token / refresh_token
+- email / account_id
+- 过期时间
+
+【注意事项】
+- 需要代理，IP 不能是 CN/HK
+- 使用 Mail.tm 临时邮箱接收验证码
