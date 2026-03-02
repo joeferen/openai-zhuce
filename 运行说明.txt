@@ -9,6 +9,7 @@ pip install curl_cffi
 1. 单次运行（推荐测试）：
    python openai_register.py --once
    python openai_register.py --proxy http://127.0.0.1:7890 --once
+   python openai_register_v2.py --once --proxy http://192.168.123.91:10808
 
 2. 循环运行：
    python openai_register.py --proxy http://127.0.0.1:7890
