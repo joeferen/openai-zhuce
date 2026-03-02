@@ -1,4 +1,4 @@
-name: OpenAI Auto Register
+name: OpenAI Auto Register _v2
 
 on:
   schedule:
@@ -60,7 +60,7 @@ jobs:
             if [ -n "$PROXY_URL" ]; then
               python openai_register.py --proxy "$PROXY_URL" --once
             else
-              python openai_register.py --once
+              python openai_register_v2.py --once
             fi
             
             # 随机等待 5-30 秒
@@ -78,7 +78,7 @@ jobs:
         run: |
           if ls *.json 1> /dev/null 2>&1; then
             file_count=$(ls -1 *.json | wc -l)
-            zip "data/tokens_${{ steps.date.outputs.date }}_count${file_count}.zip" *.json
+            zip "data/tokens_accounts_${{ steps.date.outputs.date }}_count${file_count}.zip" *.json email_accounts.txt
             echo "Archived $file_count JSON files"
             echo "has_json=true" >> $GITHUB_ENV
           else
@@ -90,14 +90,15 @@ jobs:
         if: env.has_json == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: tokens-${{ steps.date.outputs.date }}
-          path: data/tokens_${{ steps.date.outputs.date }}_count*.zip
+          name: tokens-accounts-${{ steps.date.outputs.date }}
+          path: data/tokens_accounts_${{ steps.date.outputs.date }}_count*.zip
           retention-days: 7
 
       - name: Remove JSON files
         run: |
           if [ "$has_json" = "true" ]; then
             rm -f *.json
+            rm -f email_accounts.txt
           fi
 
       - name: Commit and push
