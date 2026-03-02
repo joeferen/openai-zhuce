@@ -1,0 +1,96 @@
+name: OpenAI Auto Register
+
+on:
+  schedule:
+    # 每6小时执行一次 (UTC 时间: 0, 6, 12, 18)
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      run_duration:
+        description: '运行时长（分:秒），默认 5小时50分'
+        required: false
+        default: '350:00'
+        type: string
+
+jobs:
+  register:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: pip install curl_cffi
+
+      - name: Parse duration
+        id: duration
+        run: |
+          duration="${{ github.event.inputs.run_duration || '350:00' }}"
+          minutes=$(echo "$duration" | cut -d':' -f1)
+          seconds=$(echo "$duration" | cut -d':' -f2)
+          total_seconds=$((minutes * 60 + seconds))
+          echo "total_seconds=$total_seconds" >> $GITHUB_OUTPUT
+          echo "Run duration: ${minutes} min ${seconds} sec ($total_seconds seconds)"
+
+      - name: Run registration script
+        env:
+          PROXY_URL: ${{ secrets.PROXY_URL }}
+        timeout-minutes: 350
+        run: |
+          start_time=$(date +%s)
+          end_time=$((start_time + ${{ steps.duration.outputs.total_seconds }}))
+          
+          while true; do
+            current_time=$(date +%s)
+            if [ $current_time -ge $end_time ]; then
+              echo "Time limit reached, stopping..."
+              break
+            fi
+            
+            if [ -n "$PROXY_URL" ]; then
+              python openai_register.py --proxy "$PROXY_URL" --once
+            else
+              python openai_register.py --once
+            fi
+            
+            # 随机等待 5-30 秒
+            sleep $((RANDOM % 26 + 5))
+          done
+
+      - name: Create data directory
+        run: mkdir -p data
+
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y-%m-%d_%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: Archive JSON files
+        run: |
+          if ls *.json 1> /dev/null 2>&1; then
+            zip "data/tokens_${{ steps.date.outputs.date }}.zip" *.json
+            echo "has_json=true" >> $GITHUB_ENV
+          else
+            echo "No JSON files to archive"
+            echo "has_json=false" >> $GITHUB_ENV
+          fi
+
+      - name: Remove JSON files
+        run: |
+          if [ "$has_json" = "true" ]; then
+            rm -f *.json
+          fi
+
+      - name: Commit and push
+        if: env.has_json == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -A
+          git diff --quiet && git diff --staged --quiet || git commit -m "chore: add tokens archive ${{ steps.date.outputs.date }}"
+          git push
