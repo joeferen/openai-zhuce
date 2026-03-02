@@ -79,7 +79,7 @@ jobs:
         run: |
           if ls *.json 1> /dev/null 2>&1; then
             file_count=$(ls -1 *.json | wc -l)
-            zip "data/tokens_${{ steps.date.outputs.date }}_count${file_count}.zip" *.json email_accounts.txt
+            zip "data/tokens_accounts_${{ steps.date.outputs.date }}_count${file_count}.zip" *.json email_accounts.txt
             echo "Archived $file_count JSON files"
             echo "has_json=true" >> $GITHUB_ENV
           else
