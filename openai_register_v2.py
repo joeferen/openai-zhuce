@@ -133,6 +133,8 @@ def delete_mailbox(address: str, proxies: Any = None) -> bool:
         impersonate="chrome",
         timeout=15,
     )
+    if resp.status_code != 200:
+        print(f"[Debug] 删除邮箱返回: {resp.status_code} - {resp.text}")
     return resp.status_code == 200
 
 
