@@ -164,7 +164,7 @@ def get_openai_code(email: str, proxies: Any = None) -> str:
 
     print(f"[*] 正在等待邮箱 {email} 的验证码...", end="", flush=True)
 
-    for attempt in range(3):
+    for attempt in range(5):
         print(".", end="", flush=True)
         try:
             resp = requests.get(
