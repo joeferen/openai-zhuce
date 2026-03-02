@@ -63,8 +63,8 @@ jobs:
               python openai_register_v2.py --once
             fi
             
-            # 随机等待 5-30 秒
-            sleep $((RANDOM % 26 + 5))
+            # 等待
+            sleep 1
           done
 
       - name: Create data directory
