@@ -128,7 +128,7 @@ def delete_mailbox(address: str, proxies: Any = None) -> bool:
     resp = requests.delete(
         f"{MAILFREE_BASE}/api/mailboxes",
         headers=_mailfree_headers(),
-        json={"address": address},
+        params={"address": address},
         proxies=proxies,
         impersonate="chrome",
         timeout=15,
